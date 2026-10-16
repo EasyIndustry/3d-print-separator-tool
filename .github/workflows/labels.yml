@@ -1,0 +1,23 @@
+name: etiquetas
+on:
+  push:
+    branches: [main]
+    paths: ['.github/labels.json', '.github/workflows/labels.yml']
+  workflow_dispatch:
+permissions:
+  issues: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Crear o actualizar las etiquetas de POLITICA.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          jq -c '.[]' .github/labels.json | while read -r l; do
+            gh label create "$(jq -r .name <<<"$l")" \
+              --color "$(jq -r .color <<<"$l")" \
+              --description "$(jq -r .description <<<"$l")" \
+              --force
+          done

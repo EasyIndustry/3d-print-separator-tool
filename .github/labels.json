@@ -1,0 +1,8 @@
+[
+  { "name": "triage", "color": "fbca04", "description": "Nuevo: falta pasarlo por el filtro de POLITICA.md" },
+  { "name": "aceptado", "color": "0e8a16", "description": "Pasa el filtro tal cual: queda hasta que se implementa" },
+  { "name": "generalizar", "color": "1d76db", "description": "La necesidad sirve, el pedido es muy puntual: se reescribe como herramienta general" },
+  { "name": "sin-cambios", "color": "c5def5", "description": "Ya se puede con la API, un valor de config.js o un punto de extensión" },
+  { "name": "fuera-de-alcance", "color": "cfd3d7", "description": "No es de esta app: va a un módulo (con su issue) o a otra herramienta" },
+  { "name": "error", "color": "d73a4a", "description": "La app no hace lo que promete" }
+]

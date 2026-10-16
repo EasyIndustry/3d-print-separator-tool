@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Política del repositorio
+    url: https://github.com/EasyIndustry/3d-print-separator-tool/blob/main/POLITICA.md
+    about: Qué entra en la app, qué va a los módulos vendorizados y cómo se evalúa un pedido.
+  - name: Seguridad
+    url: https://github.com/EasyIndustry/3d-print-separator-tool/security/advisories/new
+    about: Un problema de seguridad se reporta en privado, no en un issue.

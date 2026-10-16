@@ -1,0 +1,37 @@
+name: Error
+description: La app no hace lo que promete (leer un 3MF, pintar, separar, exportar).
+labels: [triage, error]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Si "no anda" quiere decir "no hace lo que necesito", es un **Pedido**, no un error.
+  - type: textarea
+    id: que-paso
+    attributes:
+      label: Qué pasó y qué esperabas
+    validations:
+      required: true
+  - type: textarea
+    id: reproducir
+    attributes:
+      label: Cómo reproducirlo
+      description: El modelo (adjuntá el 3MF o el STL si podés), los valores de separación y los pasos.
+    validations:
+      required: true
+  - type: textarea
+    id: origen
+    attributes:
+      label: De dónde salió el modelo
+      description: Bambu Studio, Orca, PrusaSlicer, otro programa, y su versión.
+  - type: textarea
+    id: versiones
+    attributes:
+      label: Navegador y sistema
+    validations:
+      required: true
+  - type: textarea
+    id: consola
+    attributes:
+      label: Errores en la consola
+      render: text

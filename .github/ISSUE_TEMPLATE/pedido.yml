@@ -1,0 +1,24 @@
+name: Pedido
+description: Algo que la app no hace y debería hacer. Pasa por el filtro de POLITICA.md.
+labels: [triage]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué problema tenés
+      description: La necesidad, no la solución. Qué querés imprimir y dónde te frena la app.
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Qué proponés
+  - type: textarea
+    id: modulo
+    attributes:
+      label: ¿Es de la app o de un módulo?
+      description: Si lo que falta es general (geometría, cómo se ve, materiales), va como issue al módulo que corresponde (threejs-cad-sdk, threejs-render-engine, threejs-material-engine) y la app lo toma cuando sale.
+  - type: textarea
+    id: hoy
+    attributes:
+      label: Cómo lo resolvés hoy

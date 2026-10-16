@@ -1,0 +1,23 @@
+{
+  "name": "3d-print-separator-tool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Separá cada color de un modelo 3D (3MF con materiales o pintado en Bambu, Orca o Prusa, o un STL que pintás acá) en piezas que se imprimen aparte y encastran con una extrusión terminada en cono. Una página web con three.js.",
+  "type": "module",
+  "license": "MIT",
+  "author": "EasyIndustry",
+  "repository": { "type": "git", "url": "git+https://github.com/EasyIndustry/3d-print-separator-tool.git" },
+  "scripts": {
+    "test": "node --test",
+    "typecheck": "tsc -p .",
+    "start": "python3 -m http.server 8000",
+    "examples": "node scripts/examples.mjs",
+    "vendor": "scripts/vendor.sh"
+  },
+  "devDependencies": {
+    "manifold-3d": "3.5.4",
+    "three": "0.170.0",
+    "three-mesh-bvh": "0.8.3"
+  },
+  "engines": { "node": ">=20" }
+}

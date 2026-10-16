@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Separador de colores 3D</title>
+  <meta name="description" content="Separá cada color de un modelo 3D (3MF o STL) en piezas que se imprimen aparte y encastran con una extrusión en cono." />
+  <!-- three.js; three-mesh-bvh acelera el cursor sobre mallas grandes; three-gpu-pathtracer, solo para el render final;
+       manifold-3d, las booleanas (se carga al separar por primera vez) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+        "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.8.3/build/index.module.js",
+        "three-gpu-pathtracer": "https://cdn.jsdelivr.net/npm/three-gpu-pathtracer@0.0.23/build/index.module.js",
+        "manifold-3d/manifold.js": "https://cdn.jsdelivr.net/npm/manifold-3d@3.5.4/manifold.js"
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="visor"></div>
+
+  <header id="barra">
+    <strong class="marca">Separador de colores</strong>
+    <label class="boton" title="Abrir un 3MF (con colores o pintado en Bambu, Orca o Prusa) o un STL">
+      Abrir…<input id="archivo" type="file" accept=".3mf,.stl" hidden />
+    </label>
+    <select id="ejemplos" title="Modelos de ejemplo">
+      <option value="">Ejemplos…</option>
+      <option value="../examples/placa-pintada.3mf">Placa pintada (zonas)</option>
+      <option value="../examples/medalla-dos-partes.3mf">Medalla de dos partes</option>
+    </select>
+    <span class="sep"></span>
+    <div class="segmentos" role="tablist" aria-label="Qué se ve">
+      <button id="modoPintar" class="activo" role="tab">Pintar</button>
+      <button id="modoPiezas" role="tab">Piezas</button>
+    </div>
+    <span class="sep"></span>
+    <button id="deshacer" title="Deshacer (Ctrl+Z)" disabled>↶</button>
+    <button id="rehacer" title="Rehacer (Ctrl+Y)" disabled>↷</button>
+    <button id="encuadrar" title="Encuadrar (F)">⤢</button>
+    <span id="estado" aria-live="polite"></span>
+  </header>
+
+  <aside id="pintar" class="panel izq">
+    <h2>Pintar</h2>
+    <label class="fila">Objeto <select id="objeto"></select></label>
+
+    <h3>Colores</h3>
+    <div id="paleta" class="paleta"></div>
+    <button id="agregarColor" class="chico">+ color</button>
+
+    <h3>Herramienta</h3>
+    <div class="segmentos tres" role="radiogroup">
+      <button data-herr="ver" class="activo" title="Mirar: el botón izquierdo orbita (V)">Ver</button>
+      <button data-herr="pincel" title="Pincel: pinta un círculo, arrastrando (B)">Pincel</button>
+      <button data-herr="relleno" title="Relleno: pinta hasta las aristas vivas (G)">Relleno</button>
+    </div>
+    <p class="ayuda" id="ayudaHerr">Arrastrá para orbitar. Con el pincel o el relleno, el botón izquierdo pinta sobre el modelo; afuera del modelo, orbita.</p>
+
+    <div class="grupo" data-para="pincel">
+      <label class="deslizador">Radio <input id="radio" type="range" min="0.2" max="20" step="0.1" /><output for="radio"></output></label>
+      <label class="tilde"><input id="respetarAristas" type="checkbox" /> No pasar las aristas vivas</label>
+      <label class="tilde"><input id="soloBase" type="checkbox" /> Pintar solo sobre el color donde empieza el trazo</label>
+    </div>
+    <div class="grupo" data-para="relleno pincel ver">
+      <label class="deslizador" title="Una arista cuyas caras se doblan más que esto corta el relleno">Tolerancia de arista <input id="angulo" type="range" min="1" max="120" step="1" /><output for="angulo"></output></label>
+      <label class="tilde" data-para="relleno"><input id="mismoColor" type="checkbox" checked /> Rellenar solo el mismo color</label>
+      <label class="tilde"><input id="verAristas" type="checkbox" /> Ver aristas detectadas</label>
+    </div>
+
+    <h3>Malla</h3>
+    <p class="ayuda" id="infoMalla"></p>
+    <div class="fila">
+      <label class="deslizador compacto" title="Partir los triángulos hasta que ningún lado pase de esto">Lado máx. <input id="lado" type="number" min="0.2" max="20" step="0.1" /> mm</label>
+      <button id="refinar" class="chico">Refinar</button>
+    </div>
+    <button id="exportarPintado" class="chico">Guardar 3MF pintado</button>
+  </aside>
+
+  <aside id="separar" class="panel der">
+    <h2>Separar</h2>
+    <label class="fila">Color base <select id="base"><option value="">automático (el de más área)</option></select></label>
+
+    <figure class="esquema" aria-label="Corte del encastre">
+      <svg id="esquema" viewBox="0 0 220 130" role="img"></svg>
+      <figcaption>Corte: el color (arriba) entra en la base con una extrusión que termina en cono.</figcaption>
+    </figure>
+
+    <div id="parametros"></div>
+
+    <label class="tilde"><input id="auto" type="checkbox" checked /> Recalcular al cambiar</label>
+    <button id="separarBtn" class="primario">Separar</button>
+
+    <label class="deslizador">Separación en la vista <input id="explode" type="range" /><output for="explode"></output></label>
+
+    <h3>Piezas</h3>
+    <ul id="piezas" class="piezas"></ul>
+    <ul id="avisos" class="avisos"></ul>
+
+    <h3>Exportar</h3>
+    <div class="fila">
+      <button id="exportar3mf" class="chico" disabled>3MF separado</button>
+      <button id="exportarStl" class="chico" disabled>STL por pieza</button>
+    </div>
+  </aside>
+
+  <div id="soltar" hidden>Soltá el 3MF o el STL acá</div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  // Tipado sin build, como en threejs-cad-sdk: TypeScript solo verifica (noEmit). Los archivos son
+  // .js con tipos en JSDoc, y el navegador los carga tal cual.
+  //
+  //   npm run typecheck
+  //
+  // Cubre el núcleo (src/) y el kernel de manifold, en modo estricto. El adaptador de three y la
+  // página quedan afuera: verificarlos pediría los tipos de three, y el núcleo no depende de three.
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM"],
+    "types": [],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.js", "adapters/manifold/**/*.js"],
+  "exclude": ["vendor"]
+}
