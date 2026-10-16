@@ -26,6 +26,7 @@ const $$ = (/** @type {string} */ s) => /** @type {HTMLElement[]} */ ([...docume
 const motor = createEngine($('#visor'), { preset: 'studio', area: 160 });
 motor.quality(motor.suggestQuality());
 const materiales = createMaterialEngine(motor.renderer);
+motor.renderer.localClippingEnabled = true; // la vista en corte de las piezas
 const vista = createSeparatorView(motor.content);
 const canvas = motor.renderer.domElement;
 
@@ -412,6 +413,29 @@ async function separarAhora() {
 }
 $('#separarBtn').onclick = separarAhora;
 
+// ---------- corte ----------
+/** El plano de corte, en x del modelo; el deslizador va de un lado al otro de las piezas. */
+function corte() {
+  const on = /** @type {HTMLInputElement} */ ($('#corte')).checked;
+  $('#corteFila').hidden = !on;
+  vista.section(on ? { at: corteX } : null);
+}
+let corteX = 0;
+deslizador('cortePos', 0, (v) => { corteX = v; corte(); }, (v) => `${v} mm`);
+$('#corte').onchange = () => {
+  // arranca en el medio de la segunda pieza (la de color), así el corte pasa por su extrusión
+  const p = piezas[1] ?? piezas[0];
+  if (p && /** @type {HTMLInputElement} */ ($('#corte')).checked) {
+    let min = Infinity, max = -Infinity;
+    for (let i = 0; i < p.positions.length; i += 3) { min = Math.min(min, p.positions[i]); max = Math.max(max, p.positions[i]); }
+    corteX = Math.round(min + max) / 2;
+    const el = /** @type {HTMLInputElement} */ ($('#cortePos'));
+    el.min = String(Math.floor(min - 20)); el.max = String(Math.ceil(max + 20)); el.value = String(corteX);
+    el.dispatchEvent(new Event('input'));
+  }
+  corte();
+};
+
 /** @param {string[]} avisos */
 function listarPiezas(avisos) {
   const pal = proyecto?.palette ?? [];
@@ -484,7 +508,7 @@ ponerHerramienta('ver');
 ponerModo('paint');
 estado('Abrí un 3MF o un STL, o elegí un ejemplo.');
 // para probar desde la consola
-Object.assign(window, { motor, vista, THREE, app: { get proyecto() { return proyecto; }, get piezas() { return piezas; }, abrir, separarAhora, ponerHerramienta, ponerModo, params } });
+Object.assign(window, { motor, vista, THREE, materiales, app: { get proyecto() { return proyecto; }, get piezas() { return piezas; }, abrir, separarAhora, ponerHerramienta, ponerModo, params } });
 // un ejemplo de arranque: ?ejemplo=placa-pintada
 const ej = new URLSearchParams(location.search).get('ejemplo');
 if (ej) fetch(`../examples/${ej}.3mf`).then((r) => r.arrayBuffer()).then((b) => abrir(b, `${ej}.3mf`));

@@ -39,6 +39,8 @@ export function createSeparatorView(parent, { edgeColor = '#1d2a3a', colorEdgeCo
   let colores = [];
   /** @type {Int32Array | null} */
   let vistaPrevia = null;
+  /** @type {{ at: number } | null} */
+  let seccion = null;
 
   const aristas = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: edgeColor, transparent: true, opacity: 0.85, depthTest: true }));
   const aristasColor = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: colorEdgeColor, transparent: true, opacity: 0.9 }));
@@ -181,10 +183,33 @@ export function createSeparatorView(parent, { edgeColor = '#1d2a3a', colorEdgeCo
         m.userData.piece = i;
         piezas.add(m);
       });
+      if (seccion) vista.section(seccion);
     },
     /** Separar las piezas en la vista: un desplazamiento [x, y, z] por pieza (mm, marco del modelo). @param {number[][]} offsets */
     explode(offsets) {
       piezas.children.forEach((m, i) => { const o = offsets[i] ?? [0, 0, 0]; m.position.set(o[0], o[1], o[2]); });
+    },
+    /**
+     * Un corte de las piezas por un plano vertical (en el marco del modelo: x = at), para ver cómo
+     * entra la extrusión en su alojamiento; null lo saca. Necesita renderer.localClippingEnabled.
+     * @param {{ at: number } | null} c
+     */
+    section(c) {
+      // el plano en el mundo: el marco del modelo está girado y centrado por root
+      root.updateMatrixWorld();
+      const plano = c ? new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0).applyMatrix4(root.matrixWorld.clone().multiply(new THREE.Matrix4().makeTranslation(c.at, 0, 0))) : null;
+      for (const m of /** @type {THREE.Mesh[]} */ (piezas.children)) {
+        const mats = Array.isArray(m.material) ? m.material : [m.material];
+        m.material = mats.map((x) => {
+          // cada pieza con su copia del material: el corte no toca el material compartido
+          const propio = x.userData.corte ? x : Object.assign(x.clone(), { userData: { ...x.userData, corte: true } });
+          propio.clippingPlanes = plano ? [plano] : null;
+          propio.side = plano ? THREE.DoubleSide : THREE.FrontSide;
+          propio.needsUpdate = true;
+          return propio;
+        })[0];
+      }
+      seccion = c;
     },
     /** Qué se ve: el modelo pintado o las piezas. @param {'paint' | 'pieces'} m */
     mode(m) {

@@ -50,7 +50,8 @@ Con `?ejemplo=placa-pintada` o `?ejemplo=medalla-dos-partes` arranca con un ejem
   (una punta suelta al pintar) pasan al color de al lado. La app avisa si la extrusión sale por el
   otro lado de la pieza o si una zona es demasiado curva para tener una dirección.
 - **Ver separado.** Cada pieza sale de su madre en su dirección, tanto como diga el deslizador
-  *Separación en la vista*.
+  *Separación en la vista*. Con *Ver en corte*, un plano corta las piezas (y se corre con su
+  deslizador): se ve la extrusión con su cono adentro del alojamiento, y el juego de la holgura.
 - **Exportar.** Un **3MF separado** lleva un objeto por pieza, con su color y su filamento, y
   cada pieza acomodada para imprimir: un incrustado va boca abajo, con la extrusión para arriba
   y sin soportes. También un **ZIP con un STL por pieza** y el **3MF pintado** (con

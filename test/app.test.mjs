@@ -294,6 +294,13 @@ test('separar una zona pintada: incrustado, extrusión con cono, y la base pierd
   // no se pisan: la holgura queda libre
   const comun = (await K()).intersect(base, color);
   assert.ok(Math.abs(volumeOf(comun)) < 1e-3);
+  // encaja: el color (con su extrusión) queda entero adentro del objeto original, y entre las dos
+  // piezas solo falta el juego de la holgura (y el sobrante de 0,02 mm de las paredes del incrustado)
+  const original = { positions: o.positions, indices: o.indices };
+  cerca(volumeOf((await K()).intersect(color, original)), color.volume, 1e-3, 'la extrusión no sale del objeto');
+  const juego = 4000 - base.volume - color.volume;
+  const esperado = (9.4 * 9.4 - 81) * 2 + (cono(9.4, sTip, 1.7) - cono(9, 0.4, 1.5)) + 0.02 * 40 * 1;
+  cerca(juego, esperado, 0.5, 'el juego es el de la holgura');
   // y separadas a 5 mm, el color sube por su dirección
   assert.deepEqual(explodeOffsets(pieces, 5), [[0, 0, 0], [0, 0, 5]]);
 });
