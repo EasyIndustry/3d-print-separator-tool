@@ -143,7 +143,18 @@ npm test             # las pruebas, en Node (separar usa manifold-3d)
 npm run typecheck    # tsc estricto
 ```
 
-Lo que se dibuja se prueba a mano en `web/` (servido por HTTP desde la raíz del repo).
+La interfaz se prueba de punta a punta en un navegador con `scripts/e2e.mjs` (Playwright y
+Chromium; los paquetes del CDN se sirven desde `node_modules`, así que corre sin red):
+
+```bash
+npm start &              # la página en http://localhost:8000/web/
+npm run e2e              # mueve los deslizadores de la separación y mide la pieza que resulta
+```
+
+Con el teclado, como un usuario, cambia el largo de la extrusión, el cono, la punta y la
+holgura. Comprueba cada vez que la extrusión baja o sube lo que dice el control, que la base
+pierde el alojamiento y que las dos piezas no se pisan. Deja capturas de la vista en corte en
+`e2e-out/`.
 
 ## Lo que todavía no está
 

@@ -25,7 +25,7 @@ Las pruebas hacen cumplir esto:
 1. En `src/`, con su prueba en `test/app.test.mjs`.
 2. Expuesto en `src/index.js`, con su línea en `src/members.js`.
 3. Si se ve, en `adapters/three/view.js` (que espeja y no decide) y en `web/`.
-4. `npm test`, `npm run typecheck` y una prueba a mano en `web/`.
+4. `npm test`, `npm run typecheck` y `npm run e2e` (o una prueba a mano en `web/`).
 
 Los tipos van en JSDoc, verificados por `tsc` en modo estricto: los archivos siguen siendo `.js`
 y no hay build.

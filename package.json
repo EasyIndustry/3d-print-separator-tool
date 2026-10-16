@@ -12,7 +12,8 @@
     "typecheck": "tsc -p .",
     "start": "python3 -m http.server 8000",
     "examples": "node scripts/examples.mjs",
-    "vendor": "scripts/vendor.sh"
+    "vendor": "scripts/vendor.sh",
+    "e2e": "node scripts/e2e.mjs"
   },
   "devDependencies": {
     "manifold-3d": "3.5.4",
