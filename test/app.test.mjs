@@ -443,3 +443,39 @@ test('acomodar para imprimir: el color boca abajo con la extrusión para arriba,
   cerca(b1.max[2], 1 + SEPARATION_DEFAULTS.length + SEPARATION_DEFAULTS.cone, 1e-6, 'alto: color + extrusión + cono');
   for (let k = 0; k < 2; k++) cerca(volumeOf(listas[k]), pieces[k].volume, 1e-6, 'girar no cambia el volumen (ni da vuelta las caras)');
 });
+
+// ---------- la misma estructura que los módulos vendorizados ----------
+
+test('la misma estructura que threejs-cad-sdk, threejs-render-engine y threejs-material-engine', async () => {
+  const { access } = await import('node:fs/promises');
+  const hay = async (f) => { try { await access(new URL(`../${f}`, import.meta.url)); return true; } catch { return false; } };
+  // lo que tienen los módulos: núcleo puro con su API y su ayuda, adaptadores, ejemplos, pruebas en
+  // Node, tipos con tsc estricto, la política, cómo contribuir, el changelog, la licencia, CI y plantillas
+  for (const f of [
+    'src/index.js', 'src/help.js', 'src/members.js', 'src/config.js', 'adapters/three', 'examples', 'test/app.test.mjs',
+    'tsconfig.json', 'README.md', 'POLITICA.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE', 'CODE_OF_CONDUCT.md', 'SECURITY.md',
+    '.github/workflows/ci.yml', '.github/workflows/labels.yml', '.github/labels.json', '.github/pull_request_template.md',
+    '.github/ISSUE_TEMPLATE/pedido.yml', '.github/ISSUE_TEMPLATE/error.yml', '.github/ISSUE_TEMPLATE/config.yml',
+  ]) assert.ok(await hay(f), `falta ${f}`);
+  // la ayuda tiene el mismo formato que la de los módulos: la misma tabla para la misma entrada
+  const propia = await import('../src/help.js');
+  for (const m of ['threejs-material-engine/src/help.js', 'threejs-render-engine/src/help.js']) {
+    const suya = await import(`../vendor/${m}`);
+    const filas = [['a(b)', 'uno'], ['static c  d', 'dos']];
+    assert.deepEqual(propia.help('t', filas, { print: false }), suya.help('t', filas, { print: false }), m);
+    assert.deepEqual(filas.map(([s]) => propia.memberNames(s)), filas.map(([s]) => suya.memberNames(s)), m);
+  }
+  // las mismas etiquetas de pedidos que el SDK (el filtro de POLITICA.md)
+  const etiquetas = JSON.parse(await readFile(new URL('../.github/labels.json', import.meta.url), 'utf8')).map((l) => l.name);
+  assert.deepEqual(etiquetas, ['triage', 'aceptado', 'generalizar', 'sin-cambios', 'fuera-de-alcance', 'error']);
+  // cada módulo vendorizado: su código, su licencia y de dónde salió (versión, rama o etiqueta, commit)
+  for (const m of ['threejs-cad-sdk', 'threejs-render-engine', 'threejs-material-engine']) {
+    assert.ok(await hay(`vendor/${m}/src/index.js`) && await hay(`vendor/${m}/LICENSE`), m);
+    assert.match(await readFile(new URL(`../vendor/${m}/VERSION`, import.meta.url), 'utf8'), /^\d+\.\d+\.\d+\S* \S+ [0-9a-f]{40}\n$/, `${m}/VERSION`);
+  }
+  // y la página los usa: el visor, los materiales y (en el núcleo) las unidades del SDK
+  const app = await readFile(new URL('../web/app.js', import.meta.url), 'utf8');
+  assert.match(app, /from '\.\.\/vendor\/threejs-render-engine\/src\/index\.js'/);
+  assert.match(app, /from '\.\.\/vendor\/threejs-material-engine\/adapters\/three\/engine\.js'/);
+  assert.match(await readFile(new URL('../src/threemf.js', import.meta.url), 'utf8'), /from '\.\.\/vendor\/threejs-cad-sdk\/src\/index\.js'/);
+});

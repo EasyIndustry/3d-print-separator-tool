@@ -2,20 +2,35 @@
 // controles de la separación con el puntero y el teclado, y mide que la extrusión cambie y siga
 // adentro de la otra pieza. Deja capturas en e2e-out/.
 //
-//   npm start &                      # la página en http://localhost:8000/web/
-//   node scripts/e2e.mjs [url-base]  # con Playwright instalado (npx playwright, o global)
+//   npm run e2e                      # levanta su propio servidor de la carpeta del repo
+//   node scripts/e2e.mjs <url-base>  # o contra una página que ya está servida
 //
-// Los paquetes del CDN (three, three-mesh-bvh, manifold-3d) se sirven desde node_modules: corre sin red.
+// Necesita Playwright (devDependency) y su Chromium (npx playwright install chromium). Los paquetes
+// del CDN (three, three-mesh-bvh, manifold-3d) se sirven desde node_modules: corre sin red.
 import { readFile, mkdir } from 'node:fs/promises';
-import { createRequire } from 'node:module';
+import { createServer } from 'node:http';
+import { extname, normalize } from 'node:path';
 import assert from 'node:assert/strict';
+import * as pw from 'playwright';
 
-const require = createRequire(import.meta.url);
-/** @type {any} */
-let pw;
-try { pw = require('playwright'); } catch { pw = await import('/opt/node22/lib/node_modules/playwright/index.mjs'); }
 const ROOT = new URL('..', import.meta.url).pathname;
-const BASE = process.argv[2] ?? 'http://localhost:8000';
+/** Un servidor estático de la carpeta del repo, si no se pasó una URL. */
+async function servir() {
+  const tipos = /** @type {Record<string, string>} */ ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.3mf': 'model/3mf', '.json': 'application/json' });
+  const s = createServer(async (req, res) => {
+    const ruta = normalize(decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
+    try {
+      const body = await readFile(ROOT + ruta.replace(/^\//, '') + (ruta.endsWith('/') ? 'index.html' : ''));
+      res.writeHead(200, { 'content-type': tipos[extname(ruta)] ?? (ruta.endsWith('/') ? 'text/html' : 'application/octet-stream') });
+      res.end(body);
+    } catch { res.writeHead(404); res.end(); }
+  });
+  await new Promise((r) => s.listen(0, '127.0.0.1', () => r(undefined)));
+  const a = /** @type {import('node:net').AddressInfo} */ (s.address());
+  return { url: `http://127.0.0.1:${a.port}`, cerrar: () => s.close() };
+}
+const servidor = process.argv[2] ? null : await servir();
+const BASE = process.argv[2] ?? /** @type {{ url: string }} */ (servidor).url;
 const OUT = `${ROOT}e2e-out/`;
 await mkdir(OUT, { recursive: true });
 
@@ -120,3 +135,4 @@ await page.screenshot({ path: `${OUT}corte-separado.png` });
 assert.deepEqual(errores, [], 'sin errores en la página');
 console.log('ok: los controles cambian la extrusión y sigue encastrando; capturas en e2e-out/');
 await browser.close();
+servidor?.cerrar();

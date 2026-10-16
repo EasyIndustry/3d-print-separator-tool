@@ -147,14 +147,14 @@ La interfaz se prueba de punta a punta en un navegador con `scripts/e2e.mjs` (Pl
 Chromium; los paquetes del CDN se sirven desde `node_modules`, así que corre sin red):
 
 ```bash
-npm start &              # la página en http://localhost:8000/web/
-npm run e2e              # mueve los deslizadores de la separación y mide la pieza que resulta
+npx playwright install chromium   # una vez
+npm run e2e                       # levanta un servidor, mueve los deslizadores y mide la pieza que resulta
 ```
 
 Con el teclado, como un usuario, cambia el largo de la extrusión, el cono, la punta y la
 holgura. Comprueba cada vez que la extrusión baja o sube lo que dice el control, que la base
 pierde el alojamiento y que las dos piezas no se pisan. Deja capturas de la vista en corte en
-`e2e-out/`.
+`e2e-out/`. Corre también en CI (`.github/workflows/ci.yml`), que guarda las capturas.
 
 ## Lo que todavía no está
 

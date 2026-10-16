@@ -6,7 +6,10 @@
   "type": "module",
   "license": "MIT",
   "author": "EasyIndustry",
-  "repository": { "type": "git", "url": "git+https://github.com/EasyIndustry/3d-print-separator-tool.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EasyIndustry/3d-print-separator-tool.git"
+  },
   "scripts": {
     "test": "node --test",
     "typecheck": "tsc -p .",
@@ -17,8 +20,11 @@
   },
   "devDependencies": {
     "manifold-3d": "3.5.4",
+    "playwright": "^1.56.1",
     "three": "0.170.0",
     "three-mesh-bvh": "0.8.3"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
